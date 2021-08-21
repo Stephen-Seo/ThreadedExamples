@@ -2,17 +2,27 @@
 #include <string>
 
 #include "argParse.hpp"
+#include "rayTracer.hpp"
 
 void printHelp() {
     std::cout << "Usage:\n"
         "-h | --help                Display this help message\n"
         "-t <integer>\n"
-        "   | --threads <integer>   Set the number of threads to use (default 1)"
+        "   | --threads <integer>   Set the number of threads to use (default 1)\n"
+        "--width <integer>          Set the width of the output image\n"
+        "--height <integer>         Set the height of the output image\n"
+        "--radius <float>           Set the radius of the sphere\n"
+        "-o <filename>\n"
+        "   | --output <filename>   Set the output filename for the image"
         << std::endl;
 }
 
 int main(int argc, char **argv) {
     int threadCount = 1;
+    unsigned int outputWidth = 1600;
+    unsigned int outputHeight = 1600;
+    float sphereRadius = 1.5f;
+    std::string outputFile = "raytrace_out";
 
     {
         auto results = Ex02::ArgParse::parseArgs(
@@ -25,6 +35,11 @@ int main(int argc, char **argv) {
             { // double args
                 "-t",
                 "--threads",
+                "--width",
+                "--height",
+                "--radius",
+                "-o",
+                "--output",
             });
 
         if(auto iter = results.find("-h"); iter != results.end()) {
@@ -58,7 +73,6 @@ int main(int argc, char **argv) {
                 return result;
             }
         }
-
         if(threadCount <= 0) {
             std::cout << "ERROR: Thread count set to invalid value ("
                 << threadCount
@@ -66,7 +80,73 @@ int main(int argc, char **argv) {
                 << std::endl;
             return 3;
         }
+        if(auto iter = results.find("--width"); iter != results.end()) {
+            try {
+                outputWidth = std::stoul(iter->second);
+            } catch (const std::invalid_argument &e) {
+                std::cout << "ERROR: Failed to parse width (invalid)"
+                    << std::endl;
+                return 3;
+            } catch (const std::out_of_range &e) {
+                std::cout << "ERROR: Failed to parse width (out of range)"
+                    << std::endl;
+                return 4;
+            }
+        }
+        if(outputWidth == 0) {
+            std::cout << "ERROR: width cannot be 0" << std::endl;
+            return 7;
+        }
+        if(auto iter = results.find("--height"); iter != results.end()) {
+            try {
+                outputHeight = std::stoul(iter->second);
+            } catch (const std::invalid_argument &e) {
+                std::cout << "ERROR: Failed to parse height (invalid)"
+                    << std::endl;
+                return 5;
+            } catch (const std::out_of_range &e) {
+                std::cout << "ERROR: Failed to parse height (out of range)"
+                    << std::endl;
+                return 6;
+            }
+        }
+        if(outputHeight == 0) {
+            std::cout << "ERROR: height cannot be 0" << std::endl;
+            return 8;
+        }
+        if(auto iter = results.find("--radius"); iter != results.end()) {
+            try {
+                sphereRadius = stof(iter->second);
+            } catch (const std::invalid_argument &e) {
+                std::cout << "ERROR: Failed to parse radius (invalid)"
+                    << std::endl;
+                return 9;
+            } catch (const std::out_of_range &e) {
+                std::cout << "ERROR: Failed to parse radius (out_of_range)"
+                    << std::endl;
+                return 10;
+            }
+        }
+        if(sphereRadius <= 0.0f) {
+            std::cout << "ERROR: radius must be positive and non-zero"
+                << std::endl;
+            return 11;
+        }
+        if(auto iter = results.find("-o"); iter != results.end()) {
+            outputFile = iter->second;
+        } else if(auto iter = results.find("--output"); iter != results.end()) {
+            outputFile = iter->second;
+        }
+        if(outputFile.empty()) {
+            std::cout << "ERROR: Output filename is empty" << std::endl;
+            return 12;
+        }
     }
+
+    auto pixels = Ex02::RT::renderGraySphere(
+        outputWidth, outputHeight, sphereRadius, threadCount);
+
+    Ex02::RT::writeGrayscaleToFile(pixels, outputWidth, outputFile);
 
     return 0;
 }
