@@ -20,7 +20,6 @@ namespace RT {
 namespace Internal {
     glm::vec3 defaultSpherePos();
     glm::vec3 defaultLightPos();
-    glm::mat4x4 defaultMVP();
 
     std::optional<glm::vec3> rayToSphere(
         glm::vec3 rayPos,
@@ -39,8 +38,7 @@ std::vector<unsigned char> renderGraySphere(
     float sphereRadius,
     int threadCount = 1,
     glm::vec3 spherePos = Internal::defaultSpherePos(),
-    glm::vec3 lightPos = Internal::defaultLightPos(),
-    glm::mat4x4 mvp = Internal::defaultMVP()
+    glm::vec3 lightPos = Internal::defaultLightPos()
 );
 
 void writeGrayscaleToFile(
