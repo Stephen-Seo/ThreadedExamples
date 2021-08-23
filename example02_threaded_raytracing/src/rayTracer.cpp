@@ -9,6 +9,43 @@
 
 const float PI = std::acos(-1.0f);
 
+Ex02::RT::Pixel::Pixel() :
+    r(0),
+    g(0),
+    b(0)
+{}
+
+Ex02::RT::Image::Image(unsigned int width, unsigned int height) :
+    width(width)
+{
+    data.resize(width * height);
+}
+
+Ex02::RT::Pixel& Ex02::RT::Image::getPixel(
+        unsigned int x, unsigned int y) {
+    return data.at(x + y * width);
+}
+
+const Ex02::RT::Pixel& Ex02::RT::Image::getPixel(
+        unsigned int x, unsigned int y) const {
+    return data.at(x + y * width);
+}
+
+void Ex02::RT::Image::writeToFile(const std::string &filename) const {
+    std::ofstream out(filename + ".ppm");
+    out << "P3\n" << width << ' ' << data.size() / width << " 255"
+        << '\n';
+
+    for(unsigned int j = 0; j < data.size() / width; ++j) {
+        for(unsigned int i = 0; i < width; ++i) {
+            out << (int)data.at(i + j * width).r << ' '
+                << (int)data.at(i + j * width).g << ' '
+                << (int)data.at(i + j * width).b << ' ';
+        }
+        out << '\n';
+    }
+}
+
 glm::vec3 Ex02::RT::Internal::defaultSpherePos() {
     return glm::vec3{0.0f, 0.0f, -2.5f};
 }
@@ -44,13 +81,6 @@ std::optional<glm::vec3> Ex02::RT::Internal::rayToSphere(
         glm::vec3 rayDir,
         glm::vec3 spherePos,
         float sphereRadius) {
-    // ensure rayDir is a unit vector
-    float rayDirLength = std::sqrt(
-            rayDir.x * rayDir.x
-            + rayDir.y * rayDir.y
-            + rayDir.z * rayDir.z);
-    rayDir /= rayDirLength;
-
     // check if there is collision
     glm::vec3 tempVec = rayPos - spherePos;
     float temp =
@@ -96,15 +126,44 @@ float Ex02::RT::Internal::angleBetweenRays(glm::vec3 a, glm::vec3 b) {
     return std::acos(dot / amag / bmag);
 }
 
-std::vector<unsigned char> Ex02::RT::renderGraySphere(
+Ex02::RT::Internal::RTSVisibleType Ex02::RT::Internal::rayToSphereVisible(
+        glm::vec3 rayPos,
+        glm::vec3 rayDir,
+        glm::vec3 spherePos,
+        float sphereRadius,
+        glm::vec3 lightPos) {
+    glm::vec3 rayDirUnit = rayDir / std::sqrt(
+        rayDir.x * rayDir.x
+        + rayDir.y * rayDir.y
+        + rayDir.z * rayDir.z);
+
+    auto collPos = rayToSphere(rayPos, rayDirUnit, spherePos, sphereRadius);
+    if(collPos) {
+        glm::vec3 toLight = lightPos - *collPos;
+        glm::vec3 toLightUnit = toLight / std::sqrt(
+            toLight.x * toLight.x
+            + toLight.y * toLight.y
+            + toLight.z * toLight.z);
+        glm::vec3 toLightPos = *collPos + toLight / 3.0f;
+        auto collResult = Internal::rayToSphere(
+            toLightPos, toLightUnit, spherePos, sphereRadius);
+        if(collResult) {
+            return {};
+        } else {
+            return {{*collPos, toLight}};
+        }
+    } else {
+        return {};
+    }
+}
+
+Ex02::RT::Image Ex02::RT::renderGraySphere(
         unsigned int outputWidth,
         unsigned int outputHeight,
-        float sphereRadius,
         int threadCount,
         glm::vec3 spherePos,
         glm::vec3 lightPos) {
-    std::vector<unsigned char> grayscalePixels;
-    grayscalePixels.resize(outputWidth * outputHeight);
+    Image image(outputWidth, outputHeight);
     glm::vec3 rayPos{0.0f, 0.0f, 0.0f};
     float lightFalloffStart = 4.5f;
     float lightFalloffEnd = 7.0f;
@@ -115,33 +174,27 @@ std::vector<unsigned char> Ex02::RT::renderGraySphere(
                 float offsetX = ((float)i + 0.5f - ((float)outputWidth / 2.0f));
                 glm::vec3 rayDir = glm::vec3{
                     offsetX, offsetY, -(float)outputHeight * EX02_RAY_TRACER_VIEW_RATIO};
-                auto rayResult = Internal::rayToSphere(
-                    rayPos, rayDir, spherePos, sphereRadius);
+                auto rayResult = Internal::rayToSphereVisible(
+                    rayPos, rayDir,
+                    spherePos, EX02_RAY_TRACER_GRAY_SPHERE_RADIUS,
+                    lightPos);
                 if(rayResult) {
-                    glm::vec3 toLight = lightPos - *rayResult;
-                    glm::vec3 toLightCached = toLight;
-                    toLight /= std::sqrt(
-                        toLight.x * toLight.x
-                        + toLight.y * toLight.y
-                        + toLight.z * toLight.z);
-                    glm::vec3 toLightPos = *rayResult + toLight;
-                    auto collResult = Internal::rayToSphere(
-                        toLightPos, toLight, spherePos, sphereRadius);
-                    if(collResult) {
-                        continue;
-                    }
-
+                    glm::vec3 *toLight = &std::get<1>(rayResult.value());
                     float dist = std::sqrt(
-                        toLightCached.x * toLightCached.x
-                        + toLightCached.y * toLightCached.y
-                        + toLightCached.z * toLightCached.z);
+                        toLight->x * toLight->x
+                        + toLight->y * toLight->y
+                        + toLight->z * toLight->z);
                     if(dist < lightFalloffStart) {
-                        grayscalePixels.at(i + j * outputWidth) = 255;
+                        image.getPixel(i, j).r = 255;
+                        image.getPixel(i, j).g = 255;
+                        image.getPixel(i, j).b = 255;
                     } else if(dist >= lightFalloffStart && dist <= lightFalloffEnd) {
-                        grayscalePixels.at(i + j * outputWidth) =
+                        image.getPixel(i, j).r =
                             (1.0f - (dist - lightFalloffStart)
-                                    / (lightFalloffEnd - lightFalloffStart))
-                                * 255.0f;
+                                / (lightFalloffEnd - lightFalloffStart))
+                            * 255.0f;
+                        image.getPixel(i, j).g = image.getPixel(i, j).r;
+                        image.getPixel(i, j).b = image.getPixel(i, j).r;
                     }
                 }
             }
@@ -149,22 +202,5 @@ std::vector<unsigned char> Ex02::RT::renderGraySphere(
     } else {
     }
 
-    return grayscalePixels;
-}
-
-void Ex02::RT::writeGrayscaleToFile(
-        const std::vector<unsigned char> &pixels,
-        unsigned int outputWidth,
-        std::string filename) {
-    std::ofstream out(filename + ".pgm");
-    out << "P2\n" << outputWidth << ' ' << pixels.size() / outputWidth << " 255"
-        << '\n';
-
-    for(unsigned int j = 0; j < pixels.size() / outputWidth; ++j) {
-        for(unsigned int i = 0; i < outputWidth; ++i) {
-            out << (int)pixels.at(i + j * outputWidth)
-                << ' ';
-        }
-        out << '\n';
-    }
+    return image;
 }

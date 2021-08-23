@@ -11,7 +11,6 @@ void printHelp() {
         "   | --threads <integer>   Set the number of threads to use (default 1)\n"
         "--width <integer>          Set the width of the output image\n"
         "--height <integer>         Set the height of the output image\n"
-        "--radius <float>           Set the radius of the sphere\n"
         "-o <filename>\n"
         "   | --output <filename>   Set the output filename for the image"
         << std::endl;
@@ -21,7 +20,6 @@ int main(int argc, char **argv) {
     int threadCount = 1;
     unsigned int outputWidth = 1600;
     unsigned int outputHeight = 1600;
-    float sphereRadius = 1.5f;
     std::string outputFile = "raytrace_out";
 
     {
@@ -37,7 +35,6 @@ int main(int argc, char **argv) {
                 "--threads",
                 "--width",
                 "--height",
-                "--radius",
                 "-o",
                 "--output",
             });
@@ -114,24 +111,6 @@ int main(int argc, char **argv) {
             std::cout << "ERROR: height cannot be 0" << std::endl;
             return 8;
         }
-        if(auto iter = results.find("--radius"); iter != results.end()) {
-            try {
-                sphereRadius = stof(iter->second);
-            } catch (const std::invalid_argument &e) {
-                std::cout << "ERROR: Failed to parse radius (invalid)"
-                    << std::endl;
-                return 9;
-            } catch (const std::out_of_range &e) {
-                std::cout << "ERROR: Failed to parse radius (out_of_range)"
-                    << std::endl;
-                return 10;
-            }
-        }
-        if(sphereRadius <= 0.0f) {
-            std::cout << "ERROR: radius must be positive and non-zero"
-                << std::endl;
-            return 11;
-        }
         if(auto iter = results.find("-o"); iter != results.end()) {
             outputFile = iter->second;
         } else if(auto iter = results.find("--output"); iter != results.end()) {
@@ -144,9 +123,9 @@ int main(int argc, char **argv) {
     }
 
     auto pixels = Ex02::RT::renderGraySphere(
-        outputWidth, outputHeight, sphereRadius, threadCount);
+        outputWidth, outputHeight, threadCount);
 
-    Ex02::RT::writeGrayscaleToFile(pixels, outputWidth, outputFile);
+    pixels.writeToFile(outputFile);
 
     return 0;
 }
