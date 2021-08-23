@@ -273,23 +273,43 @@ Ex02::RT::Image Ex02::RT::renderColorsWithSpheres(
         unsigned int threadCount) {
     Image image(outputWidth, outputHeight);
     const glm::vec3 rayPos{0.0f, 0.0f, 0.0f};
-    std::array<Internal::Sphere, 3> spheres;
+    std::array<Internal::Sphere, 7> spheres;
     std::array<Internal::LightSource, 3> lights;
 
     spheres[0].pos.x = 2.0f;
     spheres[0].pos.y = -2.0f;
     spheres[0].pos.z = -4.5f;
-    spheres[0].radius = 0.5f;
+    spheres[0].radius = 1.0f;
 
     spheres[1].pos.x = -2.0f;
     spheres[1].pos.y = 2.0f;
     spheres[1].pos.z = -4.5f;
-    spheres[1].radius = 0.5f;
+    spheres[1].radius = 1.0f;
 
     spheres[2].pos.x = 0.0f;
     spheres[2].pos.y = 0.0f;
     spheres[2].pos.z = -6.0f;
     spheres[2].radius = 2.0f;
+
+    spheres[3].pos.x = 2.0f;
+    spheres[3].pos.y = 2.0f;
+    spheres[3].pos.z = -2.5;
+    spheres[3].radius = 1.0f;
+
+    spheres[4].pos.x = -2.0f;
+    spheres[4].pos.y = -2.0f;
+    spheres[4].pos.z = -2.5;
+    spheres[4].radius = 1.0f;
+
+    spheres[5].pos.x = -0.7f;
+    spheres[5].pos.y = -0.7f;
+    spheres[5].pos.z = -4.0f;
+    spheres[5].radius = -0.7f;
+
+    spheres[6].pos.x = 0.7f;
+    spheres[6].pos.y = 0.7f;
+    spheres[6].pos.z = -4.0f;
+    spheres[6].radius = -0.7f;
 
     lights[0].color.r = 1.0f;
     lights[0].color.g = 0.0f;
