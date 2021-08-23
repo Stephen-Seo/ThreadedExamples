@@ -3,6 +3,8 @@
 #include <cmath>
 #include <fstream>
 #include <array>
+#include <thread>
+#include <mutex>
 
 #include <glm/matrix.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -316,73 +318,106 @@ Ex02::RT::Image Ex02::RT::renderColorsWithSpheres(
     lights[2].falloffStart = 3.0f;
     lights[2].falloffEnd = 7.0f;
 
-    if(threadCount <= 1) {
-        for(unsigned int j = 0; j < outputHeight; ++j) {
-            float offsetY = ((float)j + 0.5f - ((float)outputHeight / 2.0f));
-            for(unsigned int i = 0; i < outputWidth; ++i) {
-                float offsetX = ((float)i + 0.5f - ((float)outputWidth / 2.0f));
-                glm::vec3 rayDir{
-                    offsetX,
-                    offsetY,
-                    -(float)outputHeight * EX02_RAY_TRACER_VIEW_RATIO};
-                glm::vec3 rayDirUnit = rayDir / std::sqrt(
-                    rayDir.x * rayDir.x
-                    + rayDir.y * rayDir.y
-                    + rayDir.z * rayDir.z);
+    const auto yIteration = [&spheres, &lights, &image, outputWidth, outputHeight, rayPos] (unsigned int j, std::mutex *mutex) {
+        float offsetY = ((float)j + 0.5f - ((float)outputHeight / 2.0f));
+        for(unsigned int i = 0; i < outputWidth; ++i) {
+            float offsetX = ((float)i + 0.5f - ((float)outputWidth / 2.0f));
+            glm::vec3 rayDir{
+                offsetX,
+                offsetY,
+                -(float)outputHeight * EX02_RAY_TRACER_VIEW_RATIO};
+            glm::vec3 rayDirUnit = rayDir / std::sqrt(
+                rayDir.x * rayDir.x
+                + rayDir.y * rayDir.y
+                + rayDir.z * rayDir.z);
 
-                // cast ray to all spheres, finding closest result
-                std::optional<std::tuple<glm::vec3, float, unsigned int>> closestResult;
-                for(unsigned int idx = 0; idx < spheres.size(); ++idx) {
-                    auto result = spheres[idx].rayToSphere(rayPos, rayDirUnit);
-                    if(result) {
-                        float dist = Internal::distBetweenPositions(
-                            rayPos, spheres[idx].pos);
-                        if(closestResult) {
-                            if(dist < std::get<1>(*closestResult)) {
-                                closestResult = {{*result, dist, idx}};
-                            }
-                        } else {
+            // cast ray to all spheres, finding closest result
+            std::optional<std::tuple<glm::vec3, float, unsigned int>> closestResult;
+            for(unsigned int idx = 0; idx < spheres.size(); ++idx) {
+                auto result = spheres[idx].rayToSphere(rayPos, rayDirUnit);
+                if(result) {
+                    float dist = Internal::distBetweenPositions(
+                        rayPos, spheres[idx].pos);
+                    if(closestResult) {
+                        if(dist < std::get<1>(*closestResult)) {
                             closestResult = {{*result, dist, idx}};
                         }
+                    } else {
+                        closestResult = {{*result, dist, idx}};
                     }
                 }
+            }
 
-                if(!closestResult) {
+            if(!closestResult) {
+                continue;
+            }
+
+            // cast ray to each light checking if colliding with other
+            // spheres
+            for(const auto &light : lights) {
+                glm::vec3 toLight = light.pos - std::get<0>(*closestResult);
+                glm::vec3 toLightUnit = toLight / std::sqrt(
+                    toLight.x * toLight.x
+                    + toLight.y * toLight.y
+                    + toLight.z * toLight.z);
+                bool isBlocked = false;
+                for(unsigned int idx = 0; idx < spheres.size(); ++idx) {
+                    if(idx == std::get<2>(*closestResult)) {
+                        continue;
+                    }
+                    auto result = spheres[idx].rayToSphere(
+                        std::get<0>(*closestResult),
+                        toLightUnit);
+                    if(result) {
+                        isBlocked = true;
+                        break;
+                    }
+                }
+                if(isBlocked) {
                     continue;
                 }
 
-                // cast ray to each light checking if colliding with other
-                // spheres
-                for(const auto &light : lights) {
-                    glm::vec3 toLight = light.pos - std::get<0>(*closestResult);
-                    glm::vec3 toLightUnit = toLight / std::sqrt(
-                        toLight.x * toLight.x
-                        + toLight.y * toLight.y
-                        + toLight.z * toLight.z);
-                    bool isBlocked = false;
-                    for(unsigned int idx = 0; idx < spheres.size(); ++idx) {
-                        if(idx == std::get<2>(*closestResult)) {
-                            continue;
-                        }
-                        auto result = spheres[idx].rayToSphere(
-                            std::get<0>(*closestResult),
-                            toLightUnit);
-                        if(result) {
-                            isBlocked = true;
-                            break;
-                        }
-                    }
-                    if(isBlocked) {
-                        continue;
-                    }
-
-                    // at this point, it is known that no spheres blocks ray
-                    // to light
+                // at this point, it is known that no spheres blocks ray
+                // to light
+                if(mutex) {
+                    std::lock_guard<std::mutex> lock(*mutex);
+                    light.applyLight(
+                        std::get<0>(*closestResult),
+                        image.getPixel(i, j));
+                } else {
                     light.applyLight(
                         std::get<0>(*closestResult),
                         image.getPixel(i, j));
                 }
             }
+        }
+    };
+
+    if(threadCount <= 1) {
+        for(unsigned int j = 0; j < outputHeight; ++j) {
+            yIteration(j, nullptr);
+        }
+    } else {
+        std::vector<std::thread> threads;
+        std::mutex mutex;
+        unsigned int range = outputHeight / threadCount;
+        for(unsigned int threadIdx = 0; threadIdx < threadCount; ++threadIdx) {
+            unsigned int start = range * threadIdx;
+            unsigned int end = range * (threadIdx + 1);
+            if(threadIdx + 1 == threadCount) {
+                end = outputHeight;
+            }
+            threads.emplace_back(std::thread([&yIteration] (unsigned int start, unsigned int end, std::mutex *mutex) {
+                for(unsigned int y = start; y < end; ++y) {
+                    yIteration(y, mutex);
+                }
+            },
+                start,
+                end,
+                &mutex));
+        }
+        for(std::thread &thread : threads) {
+            thread.join();
         }
     }
 
