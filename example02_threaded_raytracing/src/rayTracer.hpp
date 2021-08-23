@@ -40,14 +40,37 @@ private:
 };
 
 namespace Internal {
+    typedef std::optional<std::tuple<glm::vec3, glm::vec3>> RTSVisibleType;
 
-    glm::vec3 defaultSpherePos();
-    glm::vec3 defaultLightPos();
+    struct LightSource {
+        LightSource();
+
+        glm::vec3 pos;
+        float falloffStart;
+        float falloffEnd;
+        glm::vec3 color;
+
+        void applyLight(glm::vec3 pos, Pixel &pixelOut) const;
+    };
+
+    struct Sphere {
+        Sphere();
+
+        glm::vec3 pos;
+        float radius;
+
+        std::optional<glm::vec3> rayToSphere(
+            glm::vec3 rayPos, glm::vec3 rayDirUnit) const;
+
+        RTSVisibleType rayToSphereVisible(
+            glm::vec3 rayPos, glm::vec3 rayDirUnit,
+            const LightSource &light) const;
+    };
 
     // returns pos of collision
     std::optional<glm::vec3> rayToSphere(
         glm::vec3 rayPos,
-        glm::vec3 rayDir,
+        glm::vec3 rayDirUnit,
         glm::vec3 spherePos,
         float sphereRadius);
 
@@ -55,11 +78,14 @@ namespace Internal {
         glm::vec3 a,
         glm::vec3 b);
 
+    float distBetweenPositions(
+        glm::vec3 a,
+        glm::vec3 b);
+
     // first vec3 is result from rayToSphere(), second is ray to light source
-    typedef std::optional<std::tuple<glm::vec3, glm::vec3>> RTSVisibleType;
     RTSVisibleType rayToSphereVisible(
         glm::vec3 rayPos,
-        glm::vec3 rayDir,
+        glm::vec3 rayDirUnit,
         glm::vec3 spherePos,
         float sphereRadius,
         glm::vec3 lightPos);
@@ -68,9 +94,13 @@ namespace Internal {
 Image renderGraySphere(
     unsigned int outputWidth,
     unsigned int outputHeight,
-    int threadCount = 1,
-    glm::vec3 spherePos = Internal::defaultSpherePos(),
-    glm::vec3 lightPos = Internal::defaultLightPos()
+    unsigned int threadCount = 1
+);
+
+Image renderColorsWithSpheres(
+    unsigned int outputWidth,
+    unsigned int outputHeight,
+    unsigned int threadCount = 1
 );
 
 } // namespace RT

@@ -122,7 +122,9 @@ int main(int argc, char **argv) {
         }
     }
 
-    auto pixels = Ex02::RT::renderGraySphere(
+//    auto pixels = Ex02::RT::renderGraySphere(
+//        outputWidth, outputHeight, threadCount);
+    auto pixels = Ex02::RT::renderColorsWithSpheres(
         outputWidth, outputHeight, threadCount);
 
     pixels.writeToFile(outputFile);
