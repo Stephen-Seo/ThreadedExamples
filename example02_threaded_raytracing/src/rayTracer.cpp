@@ -106,17 +106,20 @@ std::vector<unsigned char> Ex02::RT::renderGraySphere(
     std::vector<unsigned char> grayscalePixels;
     grayscalePixels.resize(outputWidth * outputHeight);
     glm::vec3 rayPos{0.0f, 0.0f, 0.0f};
+    float lightFalloffStart = 4.5f;
+    float lightFalloffEnd = 7.0f;
     if(threadCount == 1) {
         for(unsigned int j = 0; j < outputHeight; ++j) {
             float offsetY = ((float)j + 0.5f - ((float)outputHeight / 2.0f));
             for(unsigned int i = 0; i < outputWidth; ++i) {
                 float offsetX = ((float)i + 0.5f - ((float)outputWidth / 2.0f));
                 glm::vec3 rayDir = glm::vec3{
-                    offsetX, offsetY, -EX02_RAY_TRACER_DRAW_PLANE};
+                    offsetX, offsetY, -(float)outputHeight * EX02_RAY_TRACER_VIEW_RATIO};
                 auto rayResult = Internal::rayToSphere(
                     rayPos, rayDir, spherePos, sphereRadius);
                 if(rayResult) {
                     glm::vec3 toLight = lightPos - *rayResult;
+                    glm::vec3 toLightCached = toLight;
                     toLight /= std::sqrt(
                         toLight.x * toLight.x
                         + toLight.y * toLight.y
@@ -128,13 +131,17 @@ std::vector<unsigned char> Ex02::RT::renderGraySphere(
                         continue;
                     }
 
-                    glm::vec3 resultToOrigin = rayPos - *rayResult;
-                    float angle = Internal::angleBetweenRays(
-                        toLight,
-                        resultToOrigin);
-                    if(angle <= PI && angle >= 0.0f) {
+                    float dist = std::sqrt(
+                        toLightCached.x * toLightCached.x
+                        + toLightCached.y * toLightCached.y
+                        + toLightCached.z * toLightCached.z);
+                    if(dist < lightFalloffStart) {
+                        grayscalePixels.at(i + j * outputWidth) = 255;
+                    } else if(dist >= lightFalloffStart && dist <= lightFalloffEnd) {
                         grayscalePixels.at(i + j * outputWidth) =
-                            (angle / PI) * 255.0f;
+                            (1.0f - (dist - lightFalloffStart)
+                                    / (lightFalloffEnd - lightFalloffStart))
+                                * 255.0f;
                     }
                 }
             }
