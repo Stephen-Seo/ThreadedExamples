@@ -11,6 +11,7 @@
 #include <optional>
 #include <string>
 #include <tuple>
+#include <mutex>
 
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
@@ -51,6 +52,7 @@ namespace Internal {
         glm::vec3 color;
 
         void applyLight(glm::vec3 pos, Pixel &pixelOut) const;
+        void applyLight(glm::vec3 pos, Pixel &pixelOut, std::mutex *mutex) const;
     };
 
     struct Sphere {

@@ -4,7 +4,6 @@
 #include <fstream>
 #include <array>
 #include <thread>
-#include <mutex>
 
 #include <glm/matrix.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -112,6 +111,57 @@ void Ex02::RT::Internal::LightSource::applyLight(
         applyFalloffColor(&color.x, &pixelOut.r, f);
         applyFalloffColor(&color.y, &pixelOut.g, f);
         applyFalloffColor(&color.z, &pixelOut.b, f);
+    }
+}
+
+void Ex02::RT::Internal::LightSource::applyLight(
+        glm::vec3 pos, Pixel &pixelOut, std::mutex* mutex) const {
+    pos = this->pos - pos;
+    float dist = std::sqrt(
+        pos.x * pos.x
+        + pos.y * pos.y
+        + pos.z * pos.z);
+    if(dist < falloffStart) {
+        const auto applyColor = [] (auto *color, unsigned char *out) {
+            unsigned int temp = (unsigned int)*out
+                + (unsigned int)(*color * 255.0f);
+            if(temp > 255) {
+                *out = 255;
+            } else {
+                *out = temp;
+            }
+        };
+        if(mutex) {
+            std::lock_guard<std::mutex> lock(*mutex);
+            applyColor(&color.x, &pixelOut.r);
+            applyColor(&color.y, &pixelOut.g);
+            applyColor(&color.z, &pixelOut.b);
+        } else {
+            applyColor(&color.x, &pixelOut.r);
+            applyColor(&color.y, &pixelOut.g);
+            applyColor(&color.z, &pixelOut.b);
+        }
+    } else if(dist >= falloffStart && dist <= falloffEnd) {
+        const auto applyFalloffColor = [] (auto *color, unsigned char *out, float f) {
+            unsigned int temp = (unsigned int)*out
+                + (unsigned int)(*color * 255.0f * f);
+            if(temp > 255) {
+                *out = 255;
+            } else {
+                *out = temp;
+            }
+        };
+        float f = (1.0f - (dist - falloffStart) / (falloffEnd - falloffStart));
+        if(mutex) {
+            std::lock_guard<std::mutex> lock(*mutex);
+            applyFalloffColor(&color.x, &pixelOut.r, f);
+            applyFalloffColor(&color.y, &pixelOut.g, f);
+            applyFalloffColor(&color.z, &pixelOut.b, f);
+        } else {
+            applyFalloffColor(&color.x, &pixelOut.r, f);
+            applyFalloffColor(&color.y, &pixelOut.g, f);
+            applyFalloffColor(&color.z, &pixelOut.b, f);
+        }
     }
 }
 
@@ -399,16 +449,10 @@ Ex02::RT::Image Ex02::RT::renderColorsWithSpheres(
 
                 // at this point, it is known that no spheres blocks ray
                 // to light
-                if(mutex) {
-                    std::lock_guard<std::mutex> lock(*mutex);
-                    light.applyLight(
-                        std::get<0>(*closestResult),
-                        image.getPixel(i, j));
-                } else {
-                    light.applyLight(
-                        std::get<0>(*closestResult),
-                        image.getPixel(i, j));
-                }
+                light.applyLight(
+                    std::get<0>(*closestResult),
+                    image.getPixel(i, j),
+                    mutex);
             }
         }
     };
