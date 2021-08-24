@@ -45,7 +45,7 @@ if(CLANG_TIDY)
         clang-tidy
         COMMAND /usr/bin/clang-tidy
         ${Example02_ALL_FILES}
-        -config=''
+        -config-file="${CMAKE_CURRENT_SOURCE_DIR}/.clang-tidy"
         --
         -std=c++17
     )

@@ -7,7 +7,7 @@ Ex02::ArgParse::parseArgs(int argc, char **argv,
                           const Ex02::ArgParse::ArgsType &singleArgs,
                           const Ex02::ArgParse::ArgsType &doubleArgs) {
   ParseResult result;
-  bool found;
+  bool found = false;
   --argc;
   ++argv;
   while (argc > 0) {

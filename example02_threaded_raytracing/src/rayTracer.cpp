@@ -9,7 +9,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/matrix.hpp>
 
-const float PI = std::acos(-1.0f);
+const float PI = std::acos(-1.0F);
 
 Ex02::RT::Pixel::Pixel() : r(0), g(0), b(0) {}
 
@@ -32,9 +32,9 @@ void Ex02::RT::Image::writeToFile(const std::string &filename) const {
 
   for (unsigned int j = 0; j < data.size() / width; ++j) {
     for (unsigned int i = 0; i < width; ++i) {
-      out << (int)data.at(i + j * width).r << ' '
-          << (int)data.at(i + j * width).g << ' '
-          << (int)data.at(i + j * width).b << ' ';
+      out << static_cast<int>(data.at(i + j * width).r) << ' '
+          << static_cast<int>(data.at(i + j * width).g) << ' '
+          << static_cast<int>(data.at(i + j * width).b) << ' ';
     }
     out << '\n';
   }
@@ -43,28 +43,28 @@ void Ex02::RT::Image::writeToFile(const std::string &filename) const {
 /*
 glm::mat4x4 Ex02::RT::Internal::defaultMVP() {
     glm::mat4x4 mvp = glm::perspective(
-        PI / 2.0f,
-        1.0f,
+        PI / 2.0F,
+        1.0F,
         EX02_RAY_TRACER_DEFAULT_NEAR_PLANE,
         EX02_RAY_TRACER_DEFAULT_FAR_PLANE);
 
     mvp *= glm::lookAt(
-        glm::vec3{0.0f, 0.0f, 0.0f},
-        glm::vec3{0.0f, 0.0f, -1.0f},
-        glm::vec3{0.0f, 1.0f, 0.0f});
+        glm::vec3{0.0F, 0.0F, 0.0F},
+        glm::vec3{0.0F, 0.0F, -1.0F},
+        glm::vec3{0.0F, 1.0F, 0.0F});
 
     // model pushes back by 2 units
     mvp = glm::translate(
         mvp,
-        glm::vec3{0.0f, 0.0f, 2.0f});
+        glm::vec3{0.0F, 0.0F, 2.0F});
 
     return mvp;
 }
 */
 
 Ex02::RT::Internal::LightSource::LightSource()
-    : pos{0.0f, 0.0f, 0.0f}, falloffStart(2.0f),
-      falloffEnd(7.0f), color{1.0f, 1.0f, 1.0f} {}
+    : pos{0.0F, 0.0F, 0.0F}, falloffStart(2.0F),
+      falloffEnd(7.0F), color{1.0F, 1.0F, 1.0F} {}
 
 void Ex02::RT::Internal::LightSource::applyLight(glm::vec3 pos,
                                                  Pixel &pixelOut) const {
@@ -72,7 +72,8 @@ void Ex02::RT::Internal::LightSource::applyLight(glm::vec3 pos,
   float dist = std::sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
   if (dist < falloffStart) {
     const auto applyColor = [](auto *color, unsigned char *out) {
-      unsigned int temp = (unsigned int)*out + (unsigned int)(*color * 255.0f);
+      unsigned int temp = static_cast<unsigned int>(*out) +
+                          static_cast<unsigned int>(*color * 255.0F);
       if (temp > 255) {
         *out = 255;
       } else {
@@ -85,15 +86,15 @@ void Ex02::RT::Internal::LightSource::applyLight(glm::vec3 pos,
   } else if (dist >= falloffStart && dist <= falloffEnd) {
     const auto applyFalloffColor = [](auto *color, unsigned char *out,
                                       float f) {
-      unsigned int temp =
-          (unsigned int)*out + (unsigned int)(*color * 255.0f * f);
+      unsigned int temp = static_cast<unsigned int>(*out) +
+                          static_cast<unsigned int>(*color * 255.0F * f);
       if (temp > 255) {
         *out = 255;
       } else {
         *out = temp;
       }
     };
-    float f = (1.0f - (dist - falloffStart) / (falloffEnd - falloffStart));
+    float f = (1.0F - (dist - falloffStart) / (falloffEnd - falloffStart));
     applyFalloffColor(&color.x, &pixelOut.r, f);
     applyFalloffColor(&color.y, &pixelOut.g, f);
     applyFalloffColor(&color.z, &pixelOut.b, f);
@@ -106,14 +107,15 @@ void Ex02::RT::Internal::LightSource::applyLight(glm::vec3 pos, Pixel &pixelOut,
   float dist = std::sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
   if (dist < falloffStart) {
     const auto applyColor = [](auto *color, unsigned char *out) {
-      unsigned int temp = (unsigned int)*out + (unsigned int)(*color * 255.0f);
+      unsigned int temp = static_cast<unsigned int>(*out) +
+                          static_cast<unsigned int>(*color * 255.0F);
       if (temp > 255) {
         *out = 255;
       } else {
         *out = temp;
       }
     };
-    if (mutex) {
+    if (mutex != nullptr) {
       std::lock_guard<std::mutex> lock(*mutex);
       applyColor(&color.x, &pixelOut.r);
       applyColor(&color.y, &pixelOut.g);
@@ -126,16 +128,16 @@ void Ex02::RT::Internal::LightSource::applyLight(glm::vec3 pos, Pixel &pixelOut,
   } else if (dist >= falloffStart && dist <= falloffEnd) {
     const auto applyFalloffColor = [](auto *color, unsigned char *out,
                                       float f) {
-      unsigned int temp =
-          (unsigned int)*out + (unsigned int)(*color * 255.0f * f);
+      unsigned int temp = static_cast<unsigned int>(*out) +
+                          static_cast<unsigned int>(*color * 255.0F * f);
       if (temp > 255) {
         *out = 255;
       } else {
         *out = temp;
       }
     };
-    float f = (1.0f - (dist - falloffStart) / (falloffEnd - falloffStart));
-    if (mutex) {
+    float f = (1.0F - (dist - falloffStart) / (falloffEnd - falloffStart));
+    if (mutex != nullptr) {
       std::lock_guard<std::mutex> lock(*mutex);
       applyFalloffColor(&color.x, &pixelOut.r, f);
       applyFalloffColor(&color.y, &pixelOut.g, f);
@@ -148,7 +150,7 @@ void Ex02::RT::Internal::LightSource::applyLight(glm::vec3 pos, Pixel &pixelOut,
   }
 }
 
-Ex02::RT::Internal::Sphere::Sphere() : pos{0.0f, 0.0f, 0.0f}, radius(2.5f) {}
+Ex02::RT::Internal::Sphere::Sphere() : pos{0.0F, 0.0F, 0.0F}, radius(2.5F) {}
 
 std::optional<glm::vec3>
 Ex02::RT::Internal::Sphere::rayToSphere(glm::vec3 rayPos,
@@ -177,7 +179,7 @@ std::optional<glm::vec3> Ex02::RT::Internal::rayToSphere(glm::vec3 rayPos,
          sphereRadius * sphereRadius;
   delta -= temp;
 
-  if (delta < 0.0f) {
+  if (delta < 0.0F) {
     return {};
   } else {
     temp = rayDirUnit.x * tempVec.x + rayDirUnit.y * tempVec.y +
@@ -186,8 +188,8 @@ std::optional<glm::vec3> Ex02::RT::Internal::rayToSphere(glm::vec3 rayPos,
     float dist2 = -temp + std::sqrt(delta);
     float min = dist > dist2 ? dist2 : dist;
     float max = dist > dist2 ? dist : dist2;
-    if (min < 0.0f) {
-      if (max < 0.0f) {
+    if (min < 0.0F) {
+      if (max < 0.0F) {
         return {};
       } else {
         return {rayPos + rayDirUnit * max};
@@ -221,7 +223,7 @@ Ex02::RT::Internal::rayToSphereVisible(glm::vec3 rayPos, glm::vec3 rayDirUnit,
     glm::vec3 toLightUnit =
         toLight / std::sqrt(toLight.x * toLight.x + toLight.y * toLight.y +
                             toLight.z * toLight.z);
-    glm::vec3 toLightPos = *collPos + toLight / 3.0f;
+    glm::vec3 toLightPos = *collPos + toLight / 3.0F;
     auto collResult =
         Internal::rayToSphere(toLightPos, toLightUnit, spherePos, sphereRadius);
     if (collResult) {
@@ -236,20 +238,23 @@ Ex02::RT::Internal::rayToSphereVisible(glm::vec3 rayPos, glm::vec3 rayDirUnit,
 
 Ex02::RT::Image Ex02::RT::renderGraySphere(unsigned int outputWidth,
                                            unsigned int outputHeight,
-                                           unsigned int) {
-  const glm::vec3 spherePos{0.0f, 0.0f, -2.5f};
-  const glm::vec3 lightPos{4.0f, 4.0f, 0.0f};
+                                           unsigned int /*unused*/) {
+  const glm::vec3 spherePos{0.0F, 0.0F, -2.5F};
+  const glm::vec3 lightPos{4.0F, 4.0F, 0.0F};
   Image image(outputWidth, outputHeight);
-  const glm::vec3 rayPos{0.0f, 0.0f, 0.0f};
-  const float lightFalloffStart = 4.5f;
-  const float lightFalloffEnd = 7.0f;
+  const glm::vec3 rayPos{0.0F, 0.0F, 0.0F};
+  const float lightFalloffStart = 4.5F;
+  const float lightFalloffEnd = 7.0F;
   //    if(threadCount <= 1) {
   for (unsigned int j = 0; j < outputHeight; ++j) {
-    float offsetY = ((float)j + 0.5f - ((float)outputHeight / 2.0f));
+    float offsetY = (static_cast<float>(j) + 0.5F -
+                     (static_cast<float>(outputHeight) / 2.0F));
     for (unsigned int i = 0; i < outputWidth; ++i) {
-      float offsetX = ((float)i + 0.5f - ((float)outputWidth / 2.0f));
+      float offsetX = (static_cast<float>(i) + 0.5F -
+                       (static_cast<float>(outputWidth) / 2.0F));
       glm::vec3 rayDir{offsetX, offsetY,
-                       -(float)outputHeight * EX02_RAY_TRACER_VIEW_RATIO};
+                       -static_cast<float>(outputHeight) *
+                           EX02_RAY_TRACER_VIEW_RATIO};
       glm::vec3 rayDirUnit =
           rayDir / std::sqrt(rayDir.x * rayDir.x + rayDir.y * rayDir.y +
                              rayDir.z * rayDir.z);
@@ -266,10 +271,10 @@ Ex02::RT::Image Ex02::RT::renderGraySphere(unsigned int outputWidth,
           image.getPixel(i, j).g = 255;
           image.getPixel(i, j).b = 255;
         } else if (dist >= lightFalloffStart && dist <= lightFalloffEnd) {
-          image.getPixel(i, j).r =
-              (1.0f - (dist - lightFalloffStart) /
+          image.getPixel(i, j).r = static_cast<unsigned char>(
+              (1.0F - (dist - lightFalloffStart) /
                           (lightFalloffEnd - lightFalloffStart)) *
-              255.0f;
+              255.0F);
           image.getPixel(i, j).g = image.getPixel(i, j).r;
           image.getPixel(i, j).b = image.getPixel(i, j).r;
         }
@@ -286,79 +291,82 @@ Ex02::RT::Image Ex02::RT::renderColorsWithSpheres(unsigned int outputWidth,
                                                   unsigned int outputHeight,
                                                   unsigned int threadCount) {
   Image image(outputWidth, outputHeight);
-  const glm::vec3 rayPos{0.0f, 0.0f, 0.0f};
+  const glm::vec3 rayPos{0.0F, 0.0F, 0.0F};
   std::array<Internal::Sphere, 7> spheres;
   std::array<Internal::LightSource, 3> lights;
 
-  spheres[0].pos.x = 2.0f;
-  spheres[0].pos.y = -2.0f;
-  spheres[0].pos.z = -4.5f;
-  spheres[0].radius = 1.0f;
+  spheres[0].pos.x = 2.0F;
+  spheres[0].pos.y = -2.0F;
+  spheres[0].pos.z = -4.5F;
+  spheres[0].radius = 1.0F;
 
-  spheres[1].pos.x = -2.0f;
-  spheres[1].pos.y = 2.0f;
-  spheres[1].pos.z = -4.5f;
-  spheres[1].radius = 1.0f;
+  spheres[1].pos.x = -2.0F;
+  spheres[1].pos.y = 2.0F;
+  spheres[1].pos.z = -4.5F;
+  spheres[1].radius = 1.0F;
 
-  spheres[2].pos.x = 0.0f;
-  spheres[2].pos.y = 0.0f;
-  spheres[2].pos.z = -6.0f;
-  spheres[2].radius = 2.0f;
+  spheres[2].pos.x = 0.0F;
+  spheres[2].pos.y = 0.0F;
+  spheres[2].pos.z = -6.0F;
+  spheres[2].radius = 2.0F;
 
-  spheres[3].pos.x = 2.0f;
-  spheres[3].pos.y = 2.0f;
+  spheres[3].pos.x = 2.0F;
+  spheres[3].pos.y = 2.0F;
   spheres[3].pos.z = -2.5;
-  spheres[3].radius = 1.0f;
+  spheres[3].radius = 1.0F;
 
-  spheres[4].pos.x = -2.0f;
-  spheres[4].pos.y = -2.0f;
+  spheres[4].pos.x = -2.0F;
+  spheres[4].pos.y = -2.0F;
   spheres[4].pos.z = -2.5;
-  spheres[4].radius = 1.0f;
+  spheres[4].radius = 1.0F;
 
-  spheres[5].pos.x = -0.7f;
-  spheres[5].pos.y = -0.7f;
-  spheres[5].pos.z = -4.0f;
-  spheres[5].radius = -0.7f;
+  spheres[5].pos.x = -0.7F;
+  spheres[5].pos.y = -0.7F;
+  spheres[5].pos.z = -4.0F;
+  spheres[5].radius = -0.7F;
 
-  spheres[6].pos.x = 0.7f;
-  spheres[6].pos.y = 0.7f;
-  spheres[6].pos.z = -4.0f;
-  spheres[6].radius = -0.7f;
+  spheres[6].pos.x = 0.7F;
+  spheres[6].pos.y = 0.7F;
+  spheres[6].pos.z = -4.0F;
+  spheres[6].radius = -0.7F;
 
-  lights[0].color.r = 1.0f;
-  lights[0].color.g = 0.0f;
-  lights[0].color.b = 0.0f;
-  lights[0].pos.x = 0.0f;
-  lights[0].pos.y = -1.0f;
-  lights[0].pos.z = 0.0f;
-  lights[0].falloffStart = 3.0f;
-  lights[0].falloffEnd = 7.0f;
+  lights[0].color.r = 1.0F;
+  lights[0].color.g = 0.0F;
+  lights[0].color.b = 0.0F;
+  lights[0].pos.x = 0.0F;
+  lights[0].pos.y = -1.0F;
+  lights[0].pos.z = 0.0F;
+  lights[0].falloffStart = 3.0F;
+  lights[0].falloffEnd = 7.0F;
 
-  lights[1].color.r = 0.0f;
-  lights[1].color.g = 1.0f;
-  lights[1].color.b = 0.0f;
-  lights[1].pos.x = std::cos(PI / 3.0f);
-  lights[1].pos.y = std::sin(PI / 3.0f);
-  lights[1].pos.z = 0.0f;
-  lights[1].falloffStart = 3.0f;
-  lights[1].falloffEnd = 7.0f;
+  lights[1].color.r = 0.0F;
+  lights[1].color.g = 1.0F;
+  lights[1].color.b = 0.0F;
+  lights[1].pos.x = std::cos(PI / 3.0F);
+  lights[1].pos.y = std::sin(PI / 3.0F);
+  lights[1].pos.z = 0.0F;
+  lights[1].falloffStart = 3.0F;
+  lights[1].falloffEnd = 7.0F;
 
-  lights[2].color.r = 0.0f;
-  lights[2].color.g = 0.0f;
-  lights[2].color.b = 1.0f;
-  lights[2].pos.x = std::cos(PI * 2.0 / 3.0f);
-  lights[2].pos.y = std::sin(PI * 2.0 / 3.0f);
-  lights[2].pos.z = 0.0f;
-  lights[2].falloffStart = 3.0f;
-  lights[2].falloffEnd = 7.0f;
+  lights[2].color.r = 0.0F;
+  lights[2].color.g = 0.0F;
+  lights[2].color.b = 1.0F;
+  lights[2].pos.x = static_cast<float>(std::cos(PI * 2.0 / 3.0F));
+  lights[2].pos.y = static_cast<float>(std::sin(PI * 2.0 / 3.0F));
+  lights[2].pos.z = 0.0F;
+  lights[2].falloffStart = 3.0F;
+  lights[2].falloffEnd = 7.0F;
 
   const auto yIteration = [&spheres, &lights, &image, outputWidth, outputHeight,
                            rayPos](unsigned int j, std::mutex *mutex) {
-    float offsetY = ((float)j + 0.5f - ((float)outputHeight / 2.0f));
+    float offsetY = (static_cast<float>(j) + 0.5F -
+                     (static_cast<float>(outputHeight) / 2.0F));
     for (unsigned int i = 0; i < outputWidth; ++i) {
-      float offsetX = ((float)i + 0.5f - ((float)outputWidth / 2.0f));
+      float offsetX = (static_cast<float>(i) + 0.5F -
+                       (static_cast<float>(outputWidth) / 2.0F));
       glm::vec3 rayDir{offsetX, offsetY,
-                       -(float)outputHeight * EX02_RAY_TRACER_VIEW_RATIO};
+                       -static_cast<float>(outputHeight) *
+                           EX02_RAY_TRACER_VIEW_RATIO};
       glm::vec3 rayDirUnit =
           rayDir / std::sqrt(rayDir.x * rayDir.x + rayDir.y * rayDir.y +
                              rayDir.z * rayDir.z);
@@ -366,9 +374,10 @@ Ex02::RT::Image Ex02::RT::renderColorsWithSpheres(unsigned int outputWidth,
       // cast ray to all spheres, finding closest result
       std::optional<std::tuple<glm::vec3, float, unsigned int>> closestResult;
       for (unsigned int idx = 0; idx < spheres.size(); ++idx) {
-        auto result = spheres[idx].rayToSphere(rayPos, rayDirUnit);
+        auto result = spheres.at(idx).rayToSphere(rayPos, rayDirUnit);
         if (result) {
-          float dist = Internal::distBetweenPositions(rayPos, spheres[idx].pos);
+          float dist =
+              Internal::distBetweenPositions(rayPos, spheres.at(idx).pos);
           if (closestResult) {
             if (dist < std::get<1>(*closestResult)) {
               closestResult = {{*result, dist, idx}};
@@ -395,8 +404,8 @@ Ex02::RT::Image Ex02::RT::renderColorsWithSpheres(unsigned int outputWidth,
           if (idx == std::get<2>(*closestResult)) {
             continue;
           }
-          auto result = spheres[idx].rayToSphere(std::get<0>(*closestResult),
-                                                 toLightUnit);
+          auto result = spheres.at(idx).rayToSphere(std::get<0>(*closestResult),
+                                                    toLightUnit);
           if (result) {
             isBlocked = true;
             break;

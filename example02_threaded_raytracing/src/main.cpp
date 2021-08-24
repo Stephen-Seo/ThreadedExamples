@@ -1,3 +1,6 @@
+constexpr unsigned int DEFAULT_WIDTH = 1600;
+constexpr unsigned int DEFAULT_HEIGHT = 1600;
+
 #include <iostream>
 #include <string>
 
@@ -20,8 +23,8 @@ void printHelp() {
 
 int main(int argc, char **argv) {
   int threadCount = 1;
-  unsigned int outputWidth = 1600;
-  unsigned int outputHeight = 1600;
+  unsigned int outputWidth = DEFAULT_WIDTH;
+  unsigned int outputHeight = DEFAULT_HEIGHT;
   std::string outputFile = "raytrace_out";
 
   {
@@ -44,7 +47,8 @@ int main(int argc, char **argv) {
     if (auto iter = results.find("-h"); iter != results.end()) {
       printHelp();
       return 0;
-    } else if (auto iter = results.find("--help"); iter != results.end()) {
+    }
+    if (auto iter = results.find("--help"); iter != results.end()) {
       printHelp();
       return 0;
     }

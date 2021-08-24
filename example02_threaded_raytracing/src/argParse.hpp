@@ -1,22 +1,21 @@
 #ifndef EXAMPLE_02_ARG_PARSE_HPP
 #define EXAMPLE_02_ARG_PARSE_HPP
 
-#define EX02_ARG_PARSE_SINGLE_ARG_PLACEHOLDER "SINGLE_ARG_PLACEHOLDER"
+constexpr const char *EX02_ARG_PARSE_SINGLE_ARG_PLACEHOLDER =
+    "SINGLE_ARG_PLACEHOLDER";
 
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 
-namespace Ex02 {
-namespace ArgParse {
+namespace Ex02::ArgParse {
 
-  typedef std::unordered_set<std::string> ArgsType;
-  typedef std::unordered_map<std::string, std::string> ParseResult;
+using ArgsType = std::unordered_set<std::string>;
+using ParseResult = std::unordered_map<std::string, std::string>;
 
-  ParseResult parseArgs(int argc, char **argv, const ArgsType &singleArgs,
-                        const ArgsType &doubleArgs);
+ParseResult parseArgs(int argc, char **argv, const ArgsType &singleArgs,
+                      const ArgsType &doubleArgs);
 
-} // namespace ArgParse
-} // namespace Ex02
+} // namespace Ex02::ArgParse
 
 #endif
