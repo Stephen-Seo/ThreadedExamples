@@ -37,6 +37,7 @@ if(CLANG_FORMAT)
         -style=file
         ${Example02_ALL_FILES}
     )
+    add_dependencies(Example02 clang-format)
 endif()
 
 find_program(CLANG_TIDY "clang-tidy")
