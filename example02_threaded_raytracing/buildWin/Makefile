@@ -4,7 +4,7 @@ CXXFLAGS=-O3 -DNDEBUG
 all: Example02.exe
 
 Example02.exe: ../src/main.o ../src/rayTracer.o ../src/argParse.o
-	$(CXX) -o Example02.exe -lpthread -Wl,-subsystem,windows $^
+	$(CXX) -o Example02.exe -lpthread $^
 
 .PHONY:
 
