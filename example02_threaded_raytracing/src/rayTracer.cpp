@@ -236,7 +236,7 @@ Ex02::RT::Internal::rayToSphereVisible(glm::vec3 rayPos, glm::vec3 rayDirUnit,
 
 Ex02::RT::Image Ex02::RT::renderGraySphere(unsigned int outputWidth,
                                            unsigned int outputHeight,
-                                           unsigned int threadCount) {
+                                           unsigned int) {
   const glm::vec3 spherePos{0.0f, 0.0f, -2.5f};
   const glm::vec3 lightPos{4.0f, 4.0f, 0.0f};
   Image image(outputWidth, outputHeight);
