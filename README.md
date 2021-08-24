@@ -3,6 +3,10 @@
 This repo has some examples using multi-threaded-programming because someone
 asked about how it works.
 
+# Disclaimer
+
+The examples have only been built/tested on Linux.
+
 # Example 1
 
 Just a very simple program that spawns a separate thread, prints some text, and
