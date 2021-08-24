@@ -17,3 +17,8 @@ joins and stops.
 Kind of overkill to implement a simple raytracer, but I needed something that
 would take time to render and would benefit from multiple threads. This example
 renders a scene with three lights and some spheres.
+
+# Legal Stuff
+
+The examples use [CMake](https://cmake.org/) as their build system.
+[CMake's License.](https://gitlab.kitware.com/cmake/cmake/-/blob/master/Copyright.txt)
