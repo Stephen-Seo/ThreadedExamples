@@ -127,10 +127,14 @@ int main(int argc, char **argv) {
 
   //    auto pixels = Ex02::RT::renderGraySphere(
   //        outputWidth, outputHeight, threadCount);
+  std::cout << "Rendering image of width " << outputWidth << " and height "
+            << outputHeight << " with " << threadCount << " thread(s)..."
+            << std::endl;
   auto pixels =
       Ex02::RT::renderColorsWithSpheres(outputWidth, outputHeight, threadCount);
 
-  pixels.writeToFile(outputFile);
+  auto outFilename = pixels.writeToFile(outputFile);
+  std::cout << "Rendered image saved to " << outFilename << std::endl;
 
   return 0;
 }

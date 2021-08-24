@@ -26,8 +26,9 @@ const Ex02::RT::Pixel &Ex02::RT::Image::getPixel(unsigned int x,
   return data.at(x + y * width);
 }
 
-void Ex02::RT::Image::writeToFile(const std::string &filename) const {
-  std::ofstream out(filename + ".ppm");
+std::string Ex02::RT::Image::writeToFile(const std::string &filename) const {
+  std::string outfilename = filename + ".ppm";
+  std::ofstream out(outfilename);
   out << "P3\n" << width << ' ' << data.size() / width << " 255" << '\n';
 
   for (unsigned int j = 0; j < data.size() / width; ++j) {
@@ -38,6 +39,8 @@ void Ex02::RT::Image::writeToFile(const std::string &filename) const {
     }
     out << '\n';
   }
+
+  return outfilename;
 }
 
 /*

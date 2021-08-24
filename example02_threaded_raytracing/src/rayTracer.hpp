@@ -31,7 +31,8 @@ public:
   Pixel &getPixel(unsigned int x, unsigned int y);
   const Pixel &getPixel(unsigned int x, unsigned int y) const;
 
-  void writeToFile(const std::string &filename) const;
+  // returns actual output filename
+  std::string writeToFile(const std::string &filename) const;
 
 private:
   unsigned int width;
