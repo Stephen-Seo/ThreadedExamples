@@ -4,16 +4,17 @@
 #define EX02_ARG_PARSE_SINGLE_ARG_PLACEHOLDER "SINGLE_ARG_PLACEHOLDER"
 
 #include <string>
-#include <unordered_set>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace Ex02 {
 namespace ArgParse {
 
-typedef std::unordered_set<std::string> ArgsType;
-typedef std::unordered_map<std::string, std::string> ParseResult;
+  typedef std::unordered_set<std::string> ArgsType;
+  typedef std::unordered_map<std::string, std::string> ParseResult;
 
-ParseResult parseArgs(int argc, char **argv, const ArgsType &singleArgs, const ArgsType &doubleArgs);
+  ParseResult parseArgs(int argc, char **argv, const ArgsType &singleArgs,
+                        const ArgsType &doubleArgs);
 
 } // namespace ArgParse
 } // namespace Ex02

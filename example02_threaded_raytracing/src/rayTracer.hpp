@@ -7,103 +7,88 @@
 #define EX02_RAY_TRACER_COLL_INCREMENT 2.0f
 #define EX02_RAY_TRACER_GRAY_SPHERE_RADIUS 1.5f
 
-#include <vector>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <tuple>
-#include <mutex>
+#include <vector>
 
-#include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/matrix.hpp>
+#include <glm/vec3.hpp>
 
 namespace Ex02 {
 namespace RT {
 
-struct Pixel {
+  struct Pixel {
     Pixel();
 
-    unsigned char r,g,b;
-};
+    unsigned char r, g, b;
+  };
 
-class Image {
-public:
+  class Image {
+  public:
     Image(unsigned int width, unsigned int height);
 
-    Pixel& getPixel(unsigned int x, unsigned int y);
-    const Pixel& getPixel(unsigned int x, unsigned int y) const;
+    Pixel &getPixel(unsigned int x, unsigned int y);
+    const Pixel &getPixel(unsigned int x, unsigned int y) const;
 
     void writeToFile(const std::string &filename) const;
 
-private:
+  private:
     unsigned int width;
     std::vector<Pixel> data;
-};
+  };
 
-namespace Internal {
+  namespace Internal {
     typedef std::optional<std::tuple<glm::vec3, glm::vec3>> RTSVisibleType;
 
     struct LightSource {
-        LightSource();
+      LightSource();
 
-        glm::vec3 pos;
-        float falloffStart;
-        float falloffEnd;
-        glm::vec3 color;
+      glm::vec3 pos;
+      float falloffStart;
+      float falloffEnd;
+      glm::vec3 color;
 
-        void applyLight(glm::vec3 pos, Pixel &pixelOut) const;
-        void applyLight(glm::vec3 pos, Pixel &pixelOut, std::mutex *mutex) const;
+      void applyLight(glm::vec3 pos, Pixel &pixelOut) const;
+      void applyLight(glm::vec3 pos, Pixel &pixelOut, std::mutex *mutex) const;
     };
 
     struct Sphere {
-        Sphere();
+      Sphere();
 
-        glm::vec3 pos;
-        float radius;
+      glm::vec3 pos;
+      float radius;
 
-        std::optional<glm::vec3> rayToSphere(
-            glm::vec3 rayPos, glm::vec3 rayDirUnit) const;
+      std::optional<glm::vec3> rayToSphere(glm::vec3 rayPos,
+                                           glm::vec3 rayDirUnit) const;
 
-        RTSVisibleType rayToSphereVisible(
-            glm::vec3 rayPos, glm::vec3 rayDirUnit,
-            const LightSource &light) const;
+      RTSVisibleType rayToSphereVisible(glm::vec3 rayPos, glm::vec3 rayDirUnit,
+                                        const LightSource &light) const;
     };
 
     // returns pos of collision
-    std::optional<glm::vec3> rayToSphere(
-        glm::vec3 rayPos,
-        glm::vec3 rayDirUnit,
-        glm::vec3 spherePos,
-        float sphereRadius);
+    std::optional<glm::vec3> rayToSphere(glm::vec3 rayPos, glm::vec3 rayDirUnit,
+                                         glm::vec3 spherePos,
+                                         float sphereRadius);
 
-    float angleBetweenRays(
-        glm::vec3 a,
-        glm::vec3 b);
+    float angleBetweenRays(glm::vec3 a, glm::vec3 b);
 
-    float distBetweenPositions(
-        glm::vec3 a,
-        glm::vec3 b);
+    float distBetweenPositions(glm::vec3 a, glm::vec3 b);
 
     // first vec3 is result from rayToSphere(), second is ray to light source
-    RTSVisibleType rayToSphereVisible(
-        glm::vec3 rayPos,
-        glm::vec3 rayDirUnit,
-        glm::vec3 spherePos,
-        float sphereRadius,
-        glm::vec3 lightPos);
-}
+    RTSVisibleType rayToSphereVisible(glm::vec3 rayPos, glm::vec3 rayDirUnit,
+                                      glm::vec3 spherePos, float sphereRadius,
+                                      glm::vec3 lightPos);
+  } // namespace Internal
 
-Image renderGraySphere(
-    unsigned int outputWidth,
-    unsigned int outputHeight,
-    unsigned int threadCount = 1
-);
+  Image renderGraySphere(unsigned int outputWidth, unsigned int outputHeight,
+                         unsigned int threadCount = 1);
 
-Image renderColorsWithSpheres(
-    unsigned int outputWidth,
-    unsigned int outputHeight,
-    unsigned int threadCount = 1
-);
+  Image renderColorsWithSpheres(unsigned int outputWidth,
+                                unsigned int outputHeight,
+                                unsigned int threadCount = 1);
 
 } // namespace RT
 } // namespace Ex02
