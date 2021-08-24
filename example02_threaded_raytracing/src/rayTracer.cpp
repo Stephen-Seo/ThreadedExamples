@@ -302,8 +302,8 @@ Ex02::RT::Image Ex02::RT::renderColorsWithSpheres(unsigned int outputWidth,
   lights[2].color.r = 0.0F;
   lights[2].color.g = 0.0F;
   lights[2].color.b = 1.0F;
-  lights[2].pos.x = static_cast<float>(std::cos(PI * 2.0 / 3.0F));
-  lights[2].pos.y = static_cast<float>(std::sin(PI * 2.0 / 3.0F));
+  lights[2].pos.x = std::cos(PI * 2.0F / 3.0F);
+  lights[2].pos.y = std::sin(PI * 2.0F / 3.0F);
   lights[2].pos.z = 0.0F;
   lights[2].falloffStart = 3.0F;
   lights[2].falloffEnd = 7.0F;
