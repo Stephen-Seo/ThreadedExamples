@@ -12,9 +12,15 @@ constexpr float EX02_RAY_TRACER_GRAY_SPHERE_RADIUS = 1.5F;
 #include <tuple>
 #include <vector>
 
-#include <glm/mat4x4.hpp>
-#include <glm/matrix.hpp>
-#include <glm/vec3.hpp>
+#ifdef __MINGW32__
+# include "/usr/include/glm/mat4x4.hpp"
+# include "/usr/include/glm/matrix.hpp"
+# include "/usr/include/glm/vec3.hpp"
+#else
+# include <glm/mat4x4.hpp>
+# include <glm/matrix.hpp>
+# include <glm/vec3.hpp>
+#endif
 
 namespace Ex02::RT {
 

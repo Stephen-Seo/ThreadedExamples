@@ -5,9 +5,15 @@
 #include <fstream>
 #include <thread>
 
-#include <glm/ext/matrix_transform.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/matrix.hpp>
+#ifdef __MINGW32__
+# include "/usr/include/glm/ext/matrix_transform.hpp"
+# include "/usr/include/glm/gtc/matrix_transform.hpp"
+# include "/usr/include/glm/matrix.hpp"
+#else
+# include <glm/ext/matrix_transform.hpp>
+# include <glm/gtc/matrix_transform.hpp>
+# include <glm/matrix.hpp>
+#endif
 
 const float PI = std::acos(-1.0F);
 
