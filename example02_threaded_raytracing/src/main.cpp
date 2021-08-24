@@ -1,5 +1,7 @@
+constexpr unsigned int DEFAULT_THREAD_COUNT = 1;
 constexpr unsigned int DEFAULT_WIDTH = 1600;
 constexpr unsigned int DEFAULT_HEIGHT = 1600;
+constexpr const char *DEFAULT_OUTPUT_FILE = "raytrace_out";
 
 #include <iostream>
 #include <string>
@@ -22,10 +24,10 @@ void printHelp() {
 }
 
 int main(int argc, char **argv) {
-  int threadCount = 1;
+  unsigned int threadCount = DEFAULT_THREAD_COUNT;
   unsigned int outputWidth = DEFAULT_WIDTH;
   unsigned int outputHeight = DEFAULT_HEIGHT;
-  std::string outputFile = "raytrace_out";
+  std::string outputFile = DEFAULT_OUTPUT_FILE;
 
   {
     auto results = Ex02::ArgParse::parseArgs(argc, argv,
@@ -55,7 +57,7 @@ int main(int argc, char **argv) {
 
     const auto setThreadCount = [&threadCount](auto iter) {
       try {
-        threadCount = std::stoi(iter->second);
+        threadCount = std::stoul(iter->second);
       } catch (const std::invalid_argument &e) {
         std::cout << "ERROR: Failed to parse thread count (invalid)"
                   << std::endl;
