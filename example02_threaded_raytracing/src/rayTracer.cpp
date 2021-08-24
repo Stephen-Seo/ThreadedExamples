@@ -429,7 +429,7 @@ Ex02::RT::Image Ex02::RT::renderColorsWithSpheres(unsigned int outputWidth,
     }
   } else {
     std::vector<std::thread> threads;
-    std::mutex mutex;
+    //    std::mutex mutex;
     unsigned int range = outputHeight / threadCount;
     for (unsigned int threadIdx = 0; threadIdx < threadCount; ++threadIdx) {
       unsigned int start = range * threadIdx;
@@ -444,7 +444,7 @@ Ex02::RT::Image Ex02::RT::renderColorsWithSpheres(unsigned int outputWidth,
               yIteration(y, mutex);
             }
           },
-          start, end, &mutex));
+          start, end, nullptr));
     }
     for (std::thread &thread : threads) {
       thread.join();
