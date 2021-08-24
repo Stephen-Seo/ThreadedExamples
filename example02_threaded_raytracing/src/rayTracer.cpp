@@ -101,55 +101,6 @@ void Ex02::RT::Internal::LightSource::applyLight(glm::vec3 pos,
   }
 }
 
-void Ex02::RT::Internal::LightSource::applyLight(glm::vec3 pos, Pixel &pixelOut,
-                                                 std::mutex *mutex) const {
-  pos = this->pos - pos;
-  float dist = std::sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
-  if (dist < falloffStart) {
-    const auto applyColor = [](auto *color, unsigned char *out) {
-      unsigned int temp = static_cast<unsigned int>(*out) +
-                          static_cast<unsigned int>(*color * 255.0F);
-      if (temp > 255) {
-        *out = 255;
-      } else {
-        *out = temp;
-      }
-    };
-    if (mutex != nullptr) {
-      std::lock_guard<std::mutex> lock(*mutex);
-      applyColor(&color.x, &pixelOut.r);
-      applyColor(&color.y, &pixelOut.g);
-      applyColor(&color.z, &pixelOut.b);
-    } else {
-      applyColor(&color.x, &pixelOut.r);
-      applyColor(&color.y, &pixelOut.g);
-      applyColor(&color.z, &pixelOut.b);
-    }
-  } else if (dist >= falloffStart && dist <= falloffEnd) {
-    const auto applyFalloffColor = [](auto *color, unsigned char *out,
-                                      float f) {
-      unsigned int temp = static_cast<unsigned int>(*out) +
-                          static_cast<unsigned int>(*color * 255.0F * f);
-      if (temp > 255) {
-        *out = 255;
-      } else {
-        *out = temp;
-      }
-    };
-    float f = (1.0F - (dist - falloffStart) / (falloffEnd - falloffStart));
-    if (mutex != nullptr) {
-      std::lock_guard<std::mutex> lock(*mutex);
-      applyFalloffColor(&color.x, &pixelOut.r, f);
-      applyFalloffColor(&color.y, &pixelOut.g, f);
-      applyFalloffColor(&color.z, &pixelOut.b, f);
-    } else {
-      applyFalloffColor(&color.x, &pixelOut.r, f);
-      applyFalloffColor(&color.y, &pixelOut.g, f);
-      applyFalloffColor(&color.z, &pixelOut.b, f);
-    }
-  }
-}
-
 Ex02::RT::Internal::Sphere::Sphere() : pos{0.0F, 0.0F, 0.0F}, radius(2.5F) {}
 
 std::optional<glm::vec3>
@@ -358,7 +309,7 @@ Ex02::RT::Image Ex02::RT::renderColorsWithSpheres(unsigned int outputWidth,
   lights[2].falloffEnd = 7.0F;
 
   const auto yIteration = [&spheres, &lights, &image, outputWidth, outputHeight,
-                           rayPos](unsigned int j, std::mutex *mutex) {
+                           rayPos](unsigned int j) {
     float offsetY = (static_cast<float>(j) + 0.5F -
                      (static_cast<float>(outputHeight) / 2.0F));
     for (unsigned int i = 0; i < outputWidth; ++i) {
@@ -417,19 +368,17 @@ Ex02::RT::Image Ex02::RT::renderColorsWithSpheres(unsigned int outputWidth,
 
         // at this point, it is known that no spheres blocks ray
         // to light
-        light.applyLight(std::get<0>(*closestResult), image.getPixel(i, j),
-                         mutex);
+        light.applyLight(std::get<0>(*closestResult), image.getPixel(i, j));
       }
     }
   };
 
   if (threadCount <= 1) {
     for (unsigned int j = 0; j < outputHeight; ++j) {
-      yIteration(j, nullptr);
+      yIteration(j);
     }
   } else {
     std::vector<std::thread> threads;
-    //    std::mutex mutex;
     unsigned int range = outputHeight / threadCount;
     for (unsigned int threadIdx = 0; threadIdx < threadCount; ++threadIdx) {
       unsigned int start = range * threadIdx;
@@ -438,13 +387,12 @@ Ex02::RT::Image Ex02::RT::renderColorsWithSpheres(unsigned int outputWidth,
         end = outputHeight;
       }
       threads.emplace_back(std::thread(
-          [&yIteration](unsigned int start, unsigned int end,
-                        std::mutex *mutex) {
+          [&yIteration](unsigned int start, unsigned int end) {
             for (unsigned int y = start; y < end; ++y) {
-              yIteration(y, mutex);
+              yIteration(y);
             }
           },
-          start, end, nullptr));
+          start, end));
     }
     for (std::thread &thread : threads) {
       thread.join();

@@ -7,7 +7,6 @@ constexpr float EX02_RAY_TRACER_DEFAULT_FAR_PLANE = 4.0F;
 constexpr float EX02_RAY_TRACER_COLL_INCREMENT = 2.0F;
 constexpr float EX02_RAY_TRACER_GRAY_SPHERE_RADIUS = 1.5F;
 
-#include <mutex>
 #include <optional>
 #include <string>
 #include <tuple>
@@ -51,7 +50,6 @@ namespace Internal {
     glm::vec3 color;
 
     void applyLight(glm::vec3 pos, Pixel &pixelOut) const;
-    void applyLight(glm::vec3 pos, Pixel &pixelOut, std::mutex *mutex) const;
   };
 
   struct Sphere {
