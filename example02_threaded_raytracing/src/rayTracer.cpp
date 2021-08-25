@@ -2,12 +2,15 @@
 
 #include <array>
 #include <cmath>
+#include <cstdio>
 #include <fstream>
 #include <thread>
 
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/matrix.hpp>
+
+#include <png.h>
 
 const float PI = std::acos(-1.0F);
 

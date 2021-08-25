@@ -31,7 +31,7 @@ public:
   Pixel &getPixel(unsigned int x, unsigned int y);
   const Pixel &getPixel(unsigned int x, unsigned int y) const;
 
-  // returns actual output filename
+  // returns actual output filename (it appends the file extension)
   std::string writeToFile(const std::string &filename) const;
 
 private:
