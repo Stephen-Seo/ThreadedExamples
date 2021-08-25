@@ -25,8 +25,14 @@ endif()
 add_executable(Example02
     ${Example02_SOURCES})
 
-target_link_libraries(Example02 PUBLIC pthread)
 target_compile_features(Example02 PUBLIC cxx_std_17)
+
+find_package(Threads REQUIRED)
+target_link_libraries(Example02 PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+
+find_package(glm REQUIRED)
+get_target_property(GLM_INCLUDE_DIRS glm INTERFACE_INCLUDE_DIRECTORIES)
+target_include_directories(Example02 PUBLIC ${GLM_INCLUDE_DIRS})
 
 find_program(CLANG_FORMAT "clang-format")
 if(CLANG_FORMAT)
