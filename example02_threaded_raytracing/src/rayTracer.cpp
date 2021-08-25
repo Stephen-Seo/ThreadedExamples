@@ -56,11 +56,13 @@ std::string Ex02::RT::Image::writeToPNG(const std::string &filename) const {
     return "ERROR";
   }
 
-  const static auto pngErrorLFn = [](png_structp psp, png_const_charp message) {
+  const static auto pngErrorLFn = [](png_structp /*unused*/,
+                                     png_const_charp message) {
     std::cerr << "WARNING [libpng]: " << message << std::endl;
   };
 
-  const static auto pngWarnLFn = [](png_structp psp, png_const_charp message) {
+  const static auto pngWarnLFn = [](png_structp /*unused*/,
+                                    png_const_charp message) {
     std::cerr << "ERROR [libpng]: " << message << std::endl;
   };
 
