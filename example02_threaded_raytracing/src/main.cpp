@@ -125,11 +125,11 @@ int main(int argc, char **argv) {
     }
   }
 
-  //    auto pixels = Ex02::RT::renderGraySphere(
-  //        outputWidth, outputHeight, threadCount);
   std::cout << "Rendering image of width " << outputWidth << " and height "
             << outputHeight << " with " << threadCount << " thread(s)..."
             << std::endl;
+  //    auto pixels = Ex02::RT::renderGraySphere(
+  //        outputWidth, outputHeight, threadCount);
   auto pixels =
       Ex02::RT::renderColorsWithSpheres(outputWidth, outputHeight, threadCount);
 
