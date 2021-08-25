@@ -40,6 +40,10 @@ else()
 endif()
 target_include_directories(Example02 PUBLIC ${GLM_INCLUDE_DIRS})
 
+find_package(PNG REQUIRED)
+target_include_directories(Example02 PUBLIC ${PNG_INCLUDE_DIRS})
+target_link_libraries(Example02 PUBLIC ${PNG_LIBRARIES})
+
 find_program(CLANG_FORMAT "clang-format")
 if(CLANG_FORMAT)
     add_custom_target(

@@ -1,5 +1,5 @@
 ---
-Checks:          'clang-diagnostic-*,clang-analyzer-*,*,-llvmlibc-*,-fuchsia-*,-readability-magic-numbers,-cppcoreguidelines-avoid-magic-numbers,-modernize-use-trailing-return-type,-llvm-header-guard,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-altera-struct-pack-align,-misc-non-private-member-variables-in-classes,-modernize-use-nodiscard,-cppcoreguidelines-pro-type-union-access,-llvm-else-after-return,-readability-else-after-return'
+Checks:          'clang-diagnostic-*,clang-analyzer-*,*,-llvmlibc-*,-fuchsia-*,-readability-magic-numbers,-cppcoreguidelines-avoid-magic-numbers,-modernize-use-trailing-return-type,-llvm-header-guard,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-altera-struct-pack-align,-misc-non-private-member-variables-in-classes,-modernize-use-nodiscard,-cppcoreguidelines-pro-type-union-access,-llvm-else-after-return,-readability-else-after-return,-cppcoreguidelines-owning-memory,-android-cloexec-fopen'
 WarningsAsErrors: ''
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false
@@ -8,12 +8,12 @@ User:            stephen
 CheckOptions:
   - key:             cppcoreguidelines-no-malloc.Reallocations
     value:           '::realloc'
-  - key:             cppcoreguidelines-owning-memory.LegacyResourceConsumers
-    value:           '::free;::realloc;::freopen;::fclose'
   - key:             modernize-use-auto.MinTypeNameLength
     value:           '5'
   - key:             bugprone-reserved-identifier.Invert
     value:           'false'
+  - key:             modernize-replace-disallow-copy-and-assign-macro.MacroName
+    value:           DISALLOW_COPY_AND_ASSIGN
   - key:             bugprone-narrowing-conversions.PedanticMode
     value:           'false'
   - key:             bugprone-unused-return-value.CheckedFunctions
@@ -30,8 +30,6 @@ CheckOptions:
     value:           'false'
   - key:             cert-dcl37-c.AllowedIdentifiers
     value:           ''
-  - key:             modernize-replace-disallow-copy-and-assign-macro.MacroName
-    value:           DISALLOW_COPY_AND_ASSIGN
   - key:             hicpp-use-emplace.SmartPointers
     value:           '::std::shared_ptr;::std::unique_ptr;::std::auto_ptr;::std::weak_ptr'
   - key:             hicpp-member-init.IgnoreArrays
@@ -316,8 +314,6 @@ CheckOptions:
     value:           'false'
   - key:             modernize-use-emplace.TupleMakeFunctions
     value:           '::std::make_pair;::std::make_tuple'
-  - key:             cppcoreguidelines-owning-memory.LegacyResourceProducers
-    value:           '::malloc;::aligned_alloc;::realloc;::calloc;::fopen;::freopen;::tmpfile'
   - key:             hicpp-uppercase-literal-suffix.IgnoreMacros
     value:           'true'
   - key:             bugprone-argument-comment.StrictMode
@@ -334,12 +330,12 @@ CheckOptions:
     value:           ''
   - key:             modernize-avoid-bind.PermissiveParameterList
     value:           'false'
-  - key:             hicpp-use-override.OverrideSpelling
-    value:           override
   - key:             modernize-use-override.FinalSpelling
     value:           final
   - key:             cert-err09-cpp.MaxSize
     value:           '-1'
+  - key:             hicpp-use-override.OverrideSpelling
+    value:           override
   - key:             hicpp-use-equals-default.IgnoreMacros
     value:           'true'
   - key:             modernize-use-noexcept.ReplacementString

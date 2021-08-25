@@ -2,12 +2,17 @@
 
 #include <array>
 #include <cmath>
+#include <csetjmp>
+#include <cstdio>
 #include <fstream>
+#include <iostream>
 #include <thread>
 
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/matrix.hpp>
+
+#include <png.h>
 
 const float PI = std::acos(-1.0F);
 
@@ -40,6 +45,66 @@ std::string Ex02::RT::Image::writeToFile(const std::string &filename) const {
     out << '\n';
   }
 
+  return outfilename;
+}
+
+std::string Ex02::RT::Image::writeToPNG(const std::string &filename) const {
+  std::string outfilename = filename + ".png";
+
+  FILE *outfile = fopen(outfilename.c_str(), "wb");
+  if (outfile == nullptr) {
+    return "ERROR";
+  }
+
+  const static auto pngErrorLFn = [](png_structp psp, png_const_charp message) {
+    std::cerr << "WARNING [libpng]: " << message << std::endl;
+  };
+
+  const static auto pngWarnLFn = [](png_structp psp, png_const_charp message) {
+    std::cerr << "ERROR [libpng]: " << message << std::endl;
+  };
+
+  png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr,
+                                                pngErrorLFn, pngWarnLFn);
+  if (png_ptr == nullptr) {
+    fclose(outfile);
+    return "ERROR";
+  }
+
+  png_infop info_ptr = png_create_info_struct(png_ptr);
+  if (info_ptr == nullptr) {
+    png_destroy_write_struct(&png_ptr, nullptr);
+    fclose(outfile);
+    return "ERROR";
+  }
+
+  if (setjmp(png_jmpbuf(png_ptr))) {
+    png_destroy_write_struct(&png_ptr, &info_ptr);
+    fclose(outfile);
+    return "ERROR";
+  }
+
+  png_init_io(png_ptr, outfile);
+
+  png_set_IHDR(png_ptr, info_ptr, this->width, this->data.size() / this->width,
+               8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
+               PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+
+  png_write_info(png_ptr, info_ptr);
+
+  png_set_filler(png_ptr, 0, PNG_FILLER_AFTER);
+
+  for (unsigned int j = 0; j < this->data.size() / this->width; ++j) {
+    unsigned char *dataPtr =
+        reinterpret_cast<unsigned char *>(&this->data.at(j * this->width));
+    png_write_rows(png_ptr, &dataPtr, 1);
+  }
+
+  png_write_end(png_ptr, nullptr);
+
+  png_destroy_write_struct(&png_ptr, &info_ptr);
+
+  fclose(outfile);
   return outfilename;
 }
 
