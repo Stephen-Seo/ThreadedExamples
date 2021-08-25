@@ -18,7 +18,7 @@ constexpr float EX02_RAY_TRACER_GRAY_SPHERE_RADIUS = 1.5F;
 
 namespace Ex02::RT {
 
-struct Pixel {
+struct alignas(4) Pixel {
   Pixel();
 
   unsigned char r, g, b;
@@ -34,9 +34,12 @@ public:
   // returns actual output filename (it appends the file extension)
   std::string writeToFile(const std::string &filename) const;
 
+  // returns actual output filename (it appends the file extension)
+  std::string writeToPNG(const std::string &filename) const;
+
 private:
   unsigned int width;
-  std::vector<Pixel> data;
+  mutable std::vector<Pixel> data;
 };
 
 namespace Internal {

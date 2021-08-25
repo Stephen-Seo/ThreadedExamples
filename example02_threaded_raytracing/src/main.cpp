@@ -133,7 +133,10 @@ int main(int argc, char **argv) {
   auto pixels =
       Ex02::RT::renderColorsWithSpheres(outputWidth, outputHeight, threadCount);
 
-  auto outFilename = pixels.writeToFile(outputFile);
+  //  auto outFilename = pixels.writeToFile(outputFile);
+  //  std::cout << "Rendered image saved to " << outFilename << std::endl;
+
+  auto outFilename = pixels.writeToPNG(outputFile);
   std::cout << "Rendered image saved to " << outFilename << std::endl;
 
   return 0;
