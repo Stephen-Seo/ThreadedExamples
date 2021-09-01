@@ -192,31 +192,28 @@ std::optional<glm::vec3> Ex02::RT::Internal::rayToSphere(glm::vec3 rayPos,
                                                          glm::vec3 spherePos,
                                                          float sphereRadius) {
   // check if there is collision
-  glm::vec3 tempVec = rayPos - spherePos;
+  const glm::vec3 tempVec = rayPos - spherePos;
   float temp = rayDirUnit.x * tempVec.x + rayDirUnit.y * tempVec.y +
                rayDirUnit.z * tempVec.z;
-  float delta = temp * temp;
-  temp = tempVec.x * tempVec.x + tempVec.y * tempVec.y + tempVec.z * tempVec.z -
-         sphereRadius * sphereRadius;
-  delta -= temp;
-
+  float delta =
+      temp * temp - (tempVec.x * tempVec.x + tempVec.y * tempVec.y +
+                     tempVec.z * tempVec.z - sphereRadius * sphereRadius);
   if (delta < 0.0F) {
     return {};
   } else {
     temp = rayDirUnit.x * tempVec.x + rayDirUnit.y * tempVec.y +
            rayDirUnit.z * tempVec.z;
-    float dist = -temp - std::sqrt(delta);
-    float dist2 = -temp + std::sqrt(delta);
-    float min = dist > dist2 ? dist2 : dist;
-    float max = dist > dist2 ? dist : dist2;
-    if (min < 0.0F) {
-      if (max < 0.0F) {
+    const float temp2 = std::sqrt(delta);
+    const float dist = -temp - temp2;
+    const float dist2 = -temp + temp2;
+    if (dist < 0.0F) {
+      if (dist2 < 0.0F) {
         return {};
       } else {
-        return {rayPos + rayDirUnit * max};
+        return {rayPos + rayDirUnit * dist2};
       }
     } else {
-      return {rayPos + rayDirUnit * min};
+      return {rayPos + rayDirUnit * dist};
     }
   }
 }
